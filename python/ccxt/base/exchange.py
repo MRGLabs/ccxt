@@ -544,6 +544,10 @@ class Exchange(object):
             self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
+        print(f"[REQUEST]:")
+        for k,v in request.items():
+            if k != 'headers':
+                print(f"\t{k}: {v}")
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
