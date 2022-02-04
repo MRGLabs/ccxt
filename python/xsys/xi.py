@@ -34,8 +34,22 @@ class DFX:
 
     '''
         Example: 
-            margin_pnl(leverage=5, order_price=20.5880, amt_filled=11.8198, total_margin=97.35832852, current_price=13.6275, debug=True);
+            _=margin_sim(leverage=5, hours_in_pos=25, order_price=36874.61, initial_margin=98.35961732, initial_margin_used_percent=90, price_close=37874, debug=True);
     '''
+    def margin_sim(self, leverage, hours_in_pos, order_price, initial_margin, initial_margin_used_percent, price_close, debug=False):
+        return self.margin_pnl(leverage=leverage,
+                               hours_in_pos=hours_in_pos,
+                               order_price=order_price,
+                               amt_filled=(leverage*initial_margin*initial_margin_used_percent/1e2)/order_price,
+                               initial_margin=initial_margin,
+                               current_price=price_close,
+                               debug=debug)
+
+    '''
+        Example: 
+            _=margin_pnl(leverage=5, hours_in_pos=25, order_price=36874.61, amt_filled=0.01200337, initial_margin=98.35961732, current_price=37874, debug=True);
+    '''
+
     def margin_pnl(leverage, hours_in_pos, order_price, amt_filled, initial_margin, current_price, debug=False):
         fee_maker, fee_taker, fee_margin = 0.001, 0.002, 0.0003
         value_initial = order_price * amt_filled
@@ -55,16 +69,21 @@ class DFX:
         margin_closing = initial_margin + pnl_adjusted
         p_liq = order_price * (1 + (.3 / leverage - margin_total / value_initial))
         if debug:
-            print(f"MARGIN STATUS:")
-            print(f"\tDelta [Spot, Margin]:\t{100 * (current_price - order_price) / order_price:.2f} %,  {100 * pnl_adjusted / initial_margin:.2f} %")
-            print(f"\tPnL:\t\t\t{pnl:.2f}\tUSDT")
-            print(f"\tPnL-adjusted:\t{pnl_adjusted:.2f}\tUSDT")
-            print(f"\tP-LIQ:\t\t\t{p_liq:.2f}\tUSDT")
-            print(f"\tMargin Rate:\t{100 * margin_rate:.2f}\t%")
-            print(f"\tFrozen Margin:\t{margin_frozen_current:.2f}\tUSDT")
-            print(f"\tUsable Margin:\t{margin_usable:.2f}\tUSDT")
-            print(f"\tClosing Margin:\t{margin_closing:.2f}\tUSDT")
-            print(f"\tFees [Open, Close, Interest, Total]:\t{fee_open:.2f},  {fee_close:.2f},  {fee_interest:.2f},  {fee_total:.2f}\tUSDT")
+            if debug:
+                print(f"\nMARGIN SIMULATION:")
+                print(f"\tPrice [Open, Close]:\t{order_price:.2f} USDT,  {current_price:.2f} USDT")
+                print(f"\tValue [Open, Close]:\t{value_initial:.2f} USDT,  {value_current:.2f} USDT")
+                print(f"\tAmount Filled:\t{amt_filled:.8f}")
+                print(f"\tDays in Position:\t{hours_in_pos / 24:.2f}\tdays")
+                print(f"\tDelta [Spot, Margin]:\t{100 * (current_price - order_price) / order_price:.2f} %,  {100 * pnl_adjusted / initial_margin:.2f} %")
+                print(f"\tPnL:\t\t\t{pnl:.2f}\tUSDT")
+                print(f"\tPnL-adjusted:\t{pnl_adjusted:.2f}\tUSDT")
+                print(f"\tP-LIQ:\t\t\t{p_liq:.2f}\tUSDT")
+                print(f"\tMargin Rate:\t{100 * margin_rate:.2f}\t%")
+                print(f"\tFrozen Margin:\t{margin_frozen_current:.2f}\tUSDT")
+                print(f"\tUsable Margin:\t{margin_usable:.2f}\tUSDT")
+                print(f"\tClosing Margin:\t{margin_closing:.2f}\tUSDT")
+                print(f"\tFees [Open, Close, Interest, Total]:\t{fee_open:.2f},  {fee_close:.2f},  {fee_interest:.2f},  {fee_total:.2f}\tUSDT")
         return margin_closing, pnl_adjusted, 100 * margin_rate, p_liq
 
     '''
